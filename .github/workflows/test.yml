@@ -1,0 +1,29 @@
+name: build
+
+# on: [push]
+
+jobs:
+  build:
+
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout build
+      uses: actions/checkout@v2
+
+    # - name: Setup .NET Core
+    #   uses: actions/setup-dotnet@v1
+    #   with:
+    #     dotnet-version: 3.1.100
+
+    # - name: Build with dotnet
+    #   run: dotnet build --configuration Release
+
+    # - name: Generate coverage report
+    #   run: dotnet test --collect "XPlat Code Coverage" --results-directory "./test-results"
+    
+    - name: Try Curl
+      uses: wei/curl@v1
+      with:
+        args: >
+        -H 'Authorization: cpanel ${{ secrets.SERVER_USERNAME }}:${{ secrets.SERVER_APITOKEN }}' https://${{ secrets.SERVER_HOST }}:2083/execute/Stats/get_bandwidth
