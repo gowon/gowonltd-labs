@@ -5,7 +5,7 @@ on:
   push:
     branches:    
       - test
-      
+
 jobs:
   build:
 
@@ -29,5 +29,4 @@ jobs:
     - name: Try Curl
       uses: wei/curl@v1
       with:
-        args: |
-        -H 'Authorization: cpanel ${{ secrets.SERVER_USERNAME }}:${{ secrets.SERVER_APITOKEN }}' https://${{ secrets.SERVER_HOST }}:2083/execute/Stats/get_bandwidth
+        args: -H 'Authorization: cpanel ${{ secrets.SERVER_USERNAME }}:${{ secrets.SERVER_APITOKEN }}' https://${{ secrets.SERVER_HOST }}:2083/execute/Stats/get_bandwidth
