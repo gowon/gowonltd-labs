@@ -1,33 +1,48 @@
 name: build
 
-# on: [push]
 on:
   push:
-    branches:    
-      - test
+    branches: [ test ]  
+    paths-ignore:
+      - README.md
 
 jobs:
   build:
-
+    name: Deploy assets to host
     runs-on: ubuntu-latest
-
     steps:
-    - name: Checkout build
-      uses: actions/checkout@v2
+      - name: Checkout build
+        uses: actions/checkout@v2
 
-    # - name: Setup .NET Core
-    #   uses: actions/setup-dotnet@v1
-    #   with:
-    #     dotnet-version: 3.1.100
+      - name: Setup .NET Core
+        uses: actions/setup-dotnet@v1
+        with:
+          dotnet-version: 3.1.x
+      
+      - name: Restore dotnet tools
+        run: dotnet tool restore
 
-    # - name: Build with dotnet
-    #   run: dotnet build --configuration Release
+      - name: Archive assets
+        run: dotnet dotnet-combine zip './test-site/' --output './artifacts/release.zip' --extensions  '.*'  --overwrite --verbose
 
-    # - name: Generate coverage report
-    #   run: dotnet test --collect "XPlat Code Coverage" --results-directory "./test-results"
+      - name: Deploy archive
+        uses: SamKirkland/FTP-Deploy-Action@4.0.0
+        with:
+          server: ${{ secrets.FTP_HOST }}
+          username: ${{ secrets.FTP_USERNAME }}
+          password: ${{ secrets.FTP_PASSWORD }}
+          local-dir: './artifacts/'
+          server-dir: 'labs.gowon.ltd/deploy-test/'
+          dangerous-clean-slate: true
     
-    - name: Try Curl
-      uses: wei/curl@v1
-      with:
-        args: >-
-          -H 'Authorization: cpanel ${{ secrets.SERVER_USERNAME }}:${{ secrets.SERVER_APITOKEN }}' 'https://${{ secrets.SERVER_HOST }}:2083/execute/Stats/get_bandwidth'
+      - name: cPanel extract archive
+        uses: wei/curl@v1
+        with:
+          args: >-
+            -H 'Authorization: cpanel ${{ secrets.CPANEL_USERNAME }}:${{ secrets.CPANEL_API_TOKEN }}' 'https://${{ secrets.CPANEL_HOST }}/json-api/cpanel?cpanel_jsonapi_apiversion=2&cpanel_jsonapi_module=Fileman&cpanel_jsonapi_func=fileop&op=extract&sourcefiles=/labs.gowon.ltd/deploy-test/release.zip&destfiles=/labs.gowon.ltd/deploy-test&metadata=zip&doubledecode=1'
+
+      - name: cPanel delete archive
+        uses: wei/curl@v1
+        with:
+          args: >-
+            -H 'Authorization: cpanel ${{ secrets.CPANEL_USERNAME }}:${{ secrets.CPANEL_API_TOKEN }}' 'https://${{ secrets.CPANEL_HOST }}/json-api/cpanel?cpanel_jsonapi_apiversion=2&cpanel_jsonapi_module=Fileman&cpanel_jsonapi_func=fileop&op=unlink&sourcefiles=/labs.gowon.ltd/deploy-test/release.zip&doubledecode=1'
