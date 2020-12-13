@@ -22,8 +22,8 @@ jobs:
       - name: Restore dotnet tools
         run: dotnet tool restore
 
-      # - name: Archive assets
-      #   run: dotnet dotnet-combine zip './test-site/' --output './artifacts/release.zip' --extensions  '.*'  --overwrite --verbose
+      - name: Archive assets
+        run: dotnet dotnet-combine zip './test-site/' --output './artifacts/release.zip' --extensions  '.*'  --overwrite --verbose
 
       - name: Deploy archive
         uses: SamKirkland/FTP-Deploy-Action@4.0.0
@@ -31,16 +31,16 @@ jobs:
           server: ${{ secrets.FTP_HOST }}
           username: ${{ secrets.FTP_USERNAME }}
           password: ${{ secrets.FTP_PASSWORD }}
-          local-dir: './test-site/'
+          local-dir: './artifacts/'
           server-dir: 'labs.gowon.ltd/deploy-test/'
           dangerous-clean-slate: true
     
-      # - name: cPanel extract archive
-      #   shell: pwsh
-      #   run: >-
-      #     Invoke-RestMethod -Uri 'https://${{ secrets.CPANEL_HOST }}/json-api/cpanel?cpanel_jsonapi_apiversion=2&cpanel_jsonapi_module=Fileman&cpanel_jsonapi_func=fileop&op=extract&sourcefiles=/labs.gowon.ltd/deploy-test/release.zip&destfiles=/labs.gowon.ltd/deploy-test&metadata=zip&doubledecode=1' -Method Get -Headers @{'Authorization' = 'cpanel ${{ secrets.CPANEL_USERNAME }}:${{ secrets.CPANEL_API_TOKEN }}'}
+      - name: cPanel extract archive
+        shell: pwsh
+        run: >-
+          Invoke-RestMethod -Uri 'https://${{ secrets.CPANEL_HOST }}/json-api/cpanel?cpanel_jsonapi_apiversion=2&cpanel_jsonapi_module=Fileman&cpanel_jsonapi_func=fileop&op=extract&sourcefiles=/labs.gowon.ltd/deploy-test/release.zip&destfiles=/labs.gowon.ltd/deploy-test&metadata=zip&doubledecode=1' -Method Get -Headers @{'Authorization' = 'cpanel ${{ secrets.CPANEL_USERNAME }}:${{ secrets.CPANEL_API_TOKEN }}'}
 
-      # - name: cPanel delete archive
-      #   shell: pwsh
-      #   run: >-
-      #     Invoke-RestMethod -Uri 'https://${{ secrets.CPANEL_HOST }}/json-api/cpanel?cpanel_jsonapi_apiversion=2&cpanel_jsonapi_module=Fileman&cpanel_jsonapi_func=fileop&op=unlink&sourcefiles=/labs.gowon.ltd/deploy-test/release.zip&doubledecode=1' -Method Get -Headers @{'Authorization' = 'cpanel ${{ secrets.CPANEL_USERNAME }}:${{ secrets.CPANEL_API_TOKEN }}'}
+      - name: cPanel delete archive
+        shell: pwsh
+        run: >-
+          Invoke-RestMethod -Uri 'https://${{ secrets.CPANEL_HOST }}/json-api/cpanel?cpanel_jsonapi_apiversion=2&cpanel_jsonapi_module=Fileman&cpanel_jsonapi_func=fileop&op=unlink&sourcefiles=/labs.gowon.ltd/deploy-test/release.zip&doubledecode=1' -Method Get -Headers @{'Authorization' = 'cpanel ${{ secrets.CPANEL_USERNAME }}:${{ secrets.CPANEL_API_TOKEN }}'}
